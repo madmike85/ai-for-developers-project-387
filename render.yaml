@@ -1,0 +1,39 @@
+# render.yaml - Render.com Blueprint for Call Calendar (Backend + Database only)
+# Frontend will be deployed separately as a Static Site after API is deployed
+
+# PostgreSQL Database (Free tier)
+databases:
+  - name: call-calendar-db
+    plan: free
+    ipAllowList: []  # Allow all (adjust for production security)
+
+# Services - Backend API only
+services:
+  # Backend API (NestJS + Prisma)
+  # Handles API requests and database operations
+  - type: web
+    name: call-calendar-api
+    runtime: node
+    plan: free
+    branch: main
+    # Build commands - install deps, generate Prisma client, compile TypeScript
+    buildCommand: npm install && npm run build
+    # Start command - run migrations then start server
+    startCommand: |
+      npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma
+      node apps/api/dist/main
+    # Environment variables
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: call-calendar-db
+          property: connectionString
+      # CORS - wildcard for simple setup (can restrict to specific URL later)
+      - key: FRONTEND_URL
+        value: "*"
+    # Health check path for monitoring (uses /health endpoint)
+    healthCheckPath: /health

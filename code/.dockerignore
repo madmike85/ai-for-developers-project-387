@@ -1,0 +1,90 @@
+# Dependencies - comprehensive exclusion
+node_modules
+**/node_modules
+*/*/node_modules
+*/*/*/node_modules
+package-lock.json
+**/package-lock.json
+
+# Build outputs - comprehensive
+dist
+**/dist
+build
+**/build
+*.tsbuildinfo
+
+# IDE and editors
+.idea
+.vscode
+*.swp
+*.swo
+*.swn
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+*.pem
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing - comprehensive exclusion
+coverage
+.nyc_output
+test-results
+playwright-report
+e2e
+test
+tests
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+**/*.e2e-spec.ts
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Git and GitHub
+.git
+.gitignore
+.github
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+
+# Misc
+.cache
+.temp
+tmp
+temp
+*.tmp
+
+# Playwright
+playwright/.cache/
+playwright/.auth/
+
+# Makefile (not needed in image)
+Makefile
+**/Makefile
+
+# CI/CD configs
+.github
+**/.github

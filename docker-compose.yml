@@ -1,0 +1,55 @@
+services:
+  # Main application service for Hexlet
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: call_calendar_app
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=call_calendar
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/call_calendar?schema=public
+      # Internal port is always 3000 (external mapping handled by ports section)
+      - PORT=3000
+      - FRONTEND_URL=http://localhost:3000
+      - NODE_ENV=production
+      - PGDATA=/var/lib/postgresql/data
+    ports:
+      # Map external PORT (from env or default 3000) to internal port 3000
+      - "${PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Note: Health check is defined in Dockerfile, not here
+    # Dockerfile health check uses: CMD sh -c 'wget ... http://localhost:${PORT:-3000}/health'
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: call_calendar_db
+    environment:
+      POSTGRES_DB: call_calendar
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d call_calendar"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

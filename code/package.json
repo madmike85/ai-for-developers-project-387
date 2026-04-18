@@ -1,0 +1,31 @@
+{
+  "name": "call-calendar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Call Calendar - Web application for scheduling and managing calls",
+  "scripts": {
+    "docker:up": "docker-compose up",
+    "docker:up:build": "docker-compose up --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v && docker system prune -f",
+    "docker:prod:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:prod:build": "docker-compose -f docker-compose.prod.yml up --build -d",
+    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "docker:prod:clean": "docker-compose -f docker-compose.prod.yml down -v && docker system prune -f",
+    "test:api": "cd apps/api && npm run test:e2e",
+    "test:e2e": "cd apps/web && npm run test:e2e",
+    "test:all": "npm run test:api && npm run test:e2e",
+    "build:db": "cd packages/db && npm install && npm run db:generate && npm run build",
+    "build:api": "cd apps/api && npm install && npm run build",
+    "build": "npm run build:db && npm run build:api"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@prisma/client": "^5.22.0"
+  }
+}

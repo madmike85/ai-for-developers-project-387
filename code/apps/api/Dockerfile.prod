@@ -1,0 +1,74 @@
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install required tools
+RUN apk add --no-cache openssl
+
+# Copy root package.json and install root dependencies
+COPY package.json ./
+RUN npm install
+
+# Copy workspace package.json files
+COPY apps/api/package.json ./apps/api/
+COPY packages/db/package.json ./packages/db/
+COPY packages/db/tsconfig.json ./packages/db/
+
+# Install workspace dependencies
+RUN cd packages/db && npm install
+RUN cd apps/api && npm install
+
+# Install build tools globally
+RUN npm install -g prisma@5.22.0 typescript @nestjs/cli
+
+# Install Prisma at root level
+RUN npm install prisma@5.22.0 @prisma/client@5.22.0
+
+# Copy Prisma schema and source
+COPY packages/db/prisma ./packages/db/prisma/
+COPY packages/db/src ./packages/db/src/
+
+# Generate Prisma client
+RUN npx prisma generate --schema=./packages/db/prisma/schema.prisma
+
+# Build packages/db
+RUN cd packages/db && npm run build
+
+# Copy API source code
+COPY apps/api/src ./apps/api/src/
+COPY apps/api/tsconfig*.json ./apps/api/
+COPY apps/api/nest-cli.json ./apps/api/
+
+# Build API
+RUN cd apps/api && npm run build
+
+# Stage 2: Production
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install wget for health checks and openssl for Prisma
+RUN apk add --no-cache wget openssl
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copy production files from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/
+COPY --from=builder /app/packages/db ./packages/db/
+
+# Change ownership to non-root user
+RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 3000
+
+# Start application with migrations
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=./packages/db/prisma/schema.prisma && node apps/api/dist/main"]
