@@ -1,1 +1,4 @@
 node_modules
+
+# Lighthouse CI reports (локально сгенерированные)
+.lighthouseci/
