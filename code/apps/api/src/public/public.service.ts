@@ -101,6 +101,7 @@ export class PublicService {
     // Check for conflicts
     const conflictingBooking = await this.prisma.booking.findFirst({
       where: {
+        eventTypeId: data.eventTypeId,
         AND: [
           {
             startTime: {
